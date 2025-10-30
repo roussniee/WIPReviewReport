@@ -33,9 +33,10 @@ To replace manual Excel-based tracking, I developed a Power BI dashboard that vi
 - Created a scalable and interactive reporting solution
 - Enabled faster communication and updates through embedded app
 
+<!--
 <h2>Program walk-through/Visual aids:</h2>
 <i><b>Still building...</b></i>
-<!--
+
 <p align="center">
 Launch the utility: <br/>
 <img src="https://i.imgur.com/62TgaWL.png" height="80%" width="80%" alt="Disk Sanitization Steps"/>
@@ -67,4 +68,4 @@ Observe the wiped disk:  <br/>
 --!>
 
 <h3>Confidentiality Note</h3>
-<i>All financial and project details shown in screenshots are anonymized or fabricated.</i>
+<i>All table and field names  are anonymized.</i>
