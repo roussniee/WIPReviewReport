@@ -1,0 +1,52 @@
+Check1: Project has not had any direct cost in the last 6 or 12 months.
+Check1a = IF([MaxExpItemDate] > EDATE(TODAY(), -6), [MaxExpItemDate], 0)
+Check1b = IF([MaxExpItemDate] > EDATE(TODAY(), -12), [MaxExpItemDate], 0)
+MaxExpItemDate = MAX('expenditure'[expenditure_item_date])
+
+
+Check2: Projects with status Interim Cert and the vessel was delivered, and the “final” Interim Certificate was issued.
+Check2 = 
+VAR ThreeMonthsAgo = EDATE(TODAY(), -3)
+RETURN
+IF(SELECTEDVALUE('project'[last_update_date]) < ThreeMonthsAgo, "REVIEW", 0)
+
+Check3: Projects with status Interim Cert and the vessel was delivered, and the “final” Interim Certificate was issued.
+Check3 = IF(TODAY() > SELECTEDVALUE('project'[completion_date]), "REVIEW", 0)
+
+Check4: % of Completion (Time) - % of Completion (Hours) is +/- 25%.
+Check4 = IF([DiffinPOCs] < 25, 1, 0)
+DiffinPOCs = ([POC Time] - [POCHours]) * 100 
+POC Time = 
+VAR ProjLengthYears = DATEDIFF(SELECTEDVALUE('project'[project_start_date]), SELECTEDVALUE('project'[completion_date]), MONTH)
+VAR YearsRemaining = DATEDIFF(TODAY(), SELECTEDVALUE('project'[completion_date]), MONTH)
+RETURN
+(ProjLengthYears - YearsRemaining) / ProjLengthYears
+POCHours = 
+VAR ProjLengthHours = SELECTEDVALUE('project_budget'[project_budget_labor_quantity])
+VAR HoursRemaining = SELECTEDVALUE('project_budget'[project_budget_labor_quantity]) - SUM('expenditure'[calculated_hours])
+RETURN
+    ProjLengthHours - HoursRemaining / ProjLengthHours
+
+
+Check5: Completion date or Delivery Date <60 days and completion based on hours is <70%.
+Check5 = IF([POCHours] < "70%", 1, 0)
+
+Check6: Original Budget Hours/Forecast Budget Hours is 0 or the Original Budget Revenue/Forecast Budget Revenue is 0.
+Check6Hours = 
+VAR CurrentHours = CALCULATE(SELECTEDVALUE('project_budget'[project_budget_labor_quantity]), 'project_budget'[project_budget_current_flag] = "Y")
+VAR OriginalHours = CALCULATE(SELECTEDVALUE('project_budget'[project_budget_labor_quantity]), 'project_budget'[current_original_flag] = "Y")
+RETURN
+    IF(OriginalHours = 0 || CurrentHours = 0, "REVIEW", BLANK())
+
+Check7:
+Check6Revenue = 
+VAR CurrentRevenue = CALCULATE(SELECTEDVALUE('project_budget'[project_budget_revenue_usd]), 'project_budget'[project_budget_current_flag] = "Y")
+VAR OriginalRevenue = CALCULATE(SELECTEDVALUE('project_budget'[project_budget_revenue_usd]), 'project_budget'[current_original_flag] = "Y")
+RETURN
+    IF(OriginalRevenue = 0 || CurrentRevenue = 0, "REVIEW", BLANK())
+
+Check8: Actual revenue > forecast revenue.
+Check8 = 
+IF(
+    (SELECTEDVALUE('project_budget'[revenue]) < SUM('event_revenue'[revenue_amount in Project Currency])), "REVIEW", 0
+    )
